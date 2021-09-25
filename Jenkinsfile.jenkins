@@ -1,14 +1,16 @@
+#!groovy
+//  groovy Jenkinsfile
 properties([disableConcurrentBuilds()])
 
 pipeline  {
     agent { 
-        label 'Profesor123456'
+        label 'master'
         }
     options {
         buildDiscarder(logRotator(numToKeepStr: '10', artifactNumToKeepStr: '10'))
         timestamps()
     }
-    
+    stages {
        stage("Create docker image") {
            steps {
                echo 'Creating docker image ...'
@@ -31,33 +33,33 @@ pipeline  {
            steps {
                echo " ============== pushing image =================="
                sh '''
-               docker push sashp17/testsite:latest
+               docker push macnaer/testsite:latest
                '''
            }
        }
-        stage("docker stop") {
-            steps {
-                echo " ============== stoping all images =================="
-                sh '''
-                docker stop chatterboxserver
-                '''
-            }
-        } 
-        stage("docker remove") {
-            steps {
-                echo " ============== removing all docker containers =================="
-                sh '''
-                docker rm chatterboxserver
-                '''
-            }
-        }
-        stage("docker run") {
-            steps {
-                echo " ============== starting chatterbox server =================="
-                sh '''
-                docker run -d --restart=always --name chatterboxserver -p 3200:3200 macnaer/chatterboxserver
+       stage("docker stop") {
+           steps {
+               echo " ============== stoping all images =================="
+               sh '''
+               docker stop $(docker ps -a -q)
                '''
-            }
+           }
+       } 
+       stage("docker remove") {
+           steps {
+               echo " ============== removing all docker containers =================="
+               sh '''
+               docker rm $(docker ps -a -q)
+               '''
+           }
+       }
+       stage("docker run") {
+           steps {
+               echo " ============== starting chatterbox server =================="
+               sh '''
+               docker run -d --restart=always --name webserver -p 80:80 macnaer/testsite
+              '''
+           }
        }
         // stage("Deploy to stage server") {
         //     steps {
@@ -69,5 +71,4 @@ pipeline  {
         //}
 
    }
-}
 }
